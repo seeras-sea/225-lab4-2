@@ -27,7 +27,7 @@ class TestHtmlElements(unittest.TestCase):
         self.driver.set_page_load_timeout(60)  # Increase page load timeout
         
         # Get the Flask app URL from environment variable or use the specified IP
-        flask_url = os.environ.get('FLASK_URL', 'http://10.48.10.138:5000')
+        flask_url = os.environ.get('FLASK_URL', 'http://10.48.10.170:5000')
         print("Connecting to Flask app at:", flask_url)
         
         # Check if the service is reachable first
@@ -151,6 +151,40 @@ class TestHtmlElements(unittest.TestCase):
             print("Error in test_table_exists:", str(e))
             # Take screenshot for debugging
             self.driver.save_screenshot('table_test_error.png')
+            raise
+    
+    def test_contacts_exist(self):
+        try:
+            # Wait for table to be present
+            table = WebDriverWait(self.driver, 20).until(
+                EC.presence_of_element_located((By.TAG_NAME, "table"))
+            )
+            
+            # Print page source for debugging
+            print("Page source excerpt:")
+            print(self.driver.page_source[:500] + "...")
+            
+            # Check for contacts in the table
+            rows = self.driver.find_elements(By.TAG_NAME, "tr")
+            print(f"Found {len(rows)} rows in the table")
+            
+            # Skip header row
+            data_rows = rows[1:] if len(rows) > 0 else []
+            print(f"Found {len(data_rows)} data rows")
+            
+            # Check if we have at least one contact
+            self.assertGreater(len(data_rows), 0, "No contacts found in the table")
+            
+            # Print the first few contacts for debugging
+            for i, row in enumerate(data_rows[:3]):
+                cells = row.find_elements(By.TAG_NAME, "td")
+                if len(cells) >= 2:  # At least ID and Name
+                    print(f"Contact {i+1}: {cells[1].text}")
+            
+        except (TimeoutException, NoSuchElementException, AssertionError) as e:
+            print("Error in test_contacts_exist:", str(e))
+            # Take screenshot for debugging
+            self.driver.save_screenshot('contacts_test_error.png')
             raise
     
     def tearDown(self):
