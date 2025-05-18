@@ -1,22 +1,31 @@
 import sqlite3
-import os
+import random
 
-DATABASE = '/nfs/demo.db'
+DATABASE = '/nfs/app.db'
 
-def connect_db():
-    """Connect to the SQLite database."""
-    return sqlite3.connect(DATABASE)
+def get_db():
+    db = sqlite3.connect(DATABASE)
+    db.row_factory = sqlite3.Row
+    return db
 
-def generate_test_data(num_contacts):
-    """Generate test data for the contacts table."""
-    db = connect_db()
-    for i in range(num_contacts):
-        name = f'Test Name {i}'
-        phone = f'123-456-789{i}'
-        db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
+def generate_test_data():
+    db = get_db()
+    
+    # Sample data
+    names = ['John Smith', 'Jane Doe', 'Robert Johnson', 'Emily Davis', 'Michael Brown', 
+             'Sarah Wilson', 'David Miller', 'Lisa Moore', 'James Taylor', 'Jennifer Anderson']
+    
+    # Generate phone numbers and emails
+    for name in names:
+        phone = f"555-{random.randint(100, 999)}-{random.randint(1000, 9999)}"
+        email = f"{name.lower().replace(' ', '.')}@example.com"
+        
+        # Insert into database
+        db.execute('INSERT INTO contacts (name, phone, email) VALUES (?, ?, ?)', 
+                  (name, phone, email))
+    
     db.commit()
-    print(f'{num_contacts} test contacts added to the database.')
-    db.close()
+    print(f"Generated {len(names)} test contacts")
 
 if __name__ == '__main__':
-    generate_test_data(10)  # Generate 10 test contacts.
+    generate_test_data()
